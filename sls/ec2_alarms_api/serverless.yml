@@ -1,0 +1,146 @@
+app: ec2-provisioning
+service: ec2-alarms-api
+frameworkVersion: ">=1.53.0"
+
+provider:
+  name: aws
+  runtime: python3.6
+  timeout: 900
+  logs:
+    restApi: true
+  tracing:
+    apiGateway: true
+    lambda: true
+  endpointType: PRIVATE
+  region: us-east-1
+  vpcEndpointIds:
+    - ${self:custom.vpcEndpointId}
+  stage: ${self:custom.stage}
+  vpc:
+    securityGroupIds: ${self:custom.SECURITY_GROUPS}
+    subnetIds: ${self:custom.SUBNETS}
+  deploymentBucket:
+    name: ${self:custom.admin_account}-lambda-package-us-east-1
+    serverSideEncryption: AES256
+  apiGateway:
+    resourcePolicy:
+      - Effect: Allow
+        Principal: "*"
+        Action: execute-api:Invoke
+        Resource:
+          - execute-api:/*/*/*
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - sts:AssumeRole
+        - secretsmanager:GetSecretValue
+        - xray:PutTraceSegments
+        - xray:PutTelemetryRecords
+        - ec2:DescribeRegions
+        - ec2:DescribeInstanceTypes
+        - cloudwatch:DescribeAlarms
+        - cloudwatch:PutMetricAlarm
+        - cloudwatch:ListMetrics
+      Resource:
+        - "*"
+  environment:
+    sddcapi_boot_dir: config
+    token_url: ${self:custom.token_url}
+    app_client_id: ${self:custom.app_client_id}
+    app_secret_name: ${self:custom.app_secret_name}
+    region_secret: ${self:custom.region_secret}
+    vpcxiam_scope: ${self:custom.vpcxiam_scope}
+    vpcxiam_endpoint: ${self:custom.vpcxiam_endpoint}
+    vpcxiam_host: ${self:custom.vpcxiam_host}
+    AZURE_AUTH_CLIENT_ID: ${self:custom.AZURE_AUTH_CLIENT_ID}
+    AZURE_AUTH_SECRET_NAME: ${self:custom.AZURE_AUTH_SECRET_NAME}
+    LDAP_GROUP_NAME: ${self:custom.LDAP_GROUP_NAME}
+    MSFT_IDP_APP_ID: ${self:custom.MSFT_IDP_APP_ID}
+    MSFT_IDP_TENANT_ID: ${self:custom.MSFT_IDP_TENANT_ID}
+    MSFT_IDP_CLIENT_ROLES: ${self:custom.MSFT_IDP_CLIENT_ROLES}
+    LOG_LEVEL: ${self:custom.LOG_LEVEL}
+
+package:
+  patterns:
+    - '!node_modules/**'
+    - '!ec2_alarms_api/create_ec2_alarms/tests/**'
+    - '!utils/tests/**'
+    - '!scripts/**'
+
+functions:
+  create_ec2_alarms:
+    handler: sls/ec2_alarms_api/create_ec2_alarms/index.handler
+    events:
+      - http:
+          path: /v1/accounts/{account_id}/regions/{region_name}/instances/{ec2_hostname}/EC2Alarms
+          method: put
+          request:
+            parameters:
+              paths:
+                account_id: true
+                region_name: true
+                ec2_hostname: true
+
+  delete_ec2_alarms:
+    handler: sls/ec2_alarms_api/delete_ec2_alarms/index.handler
+    events:
+      - http:
+          path: /v1/accounts/{account_id}/regions/{region_name}/instances/{ec2_hostname}/EC2Alarms
+          method: delete
+          request:
+            parameters:
+              paths:
+                account_id: true
+                region_name: true
+                ec2_hostname: true
+
+custom:
+  prune:
+    automatic: true
+    number: 3
+  output:
+    file: stack-outputs.json
+  ssmPublish:
+    enabled: true
+    params:
+      - path: /vpcx/awsapi/ec2-provisioning/ec2-alarms-api
+        source: ServiceEndpoint
+        secure: false
+  pythonRequirements:
+    dockerizePip: false
+    slim: true
+    slimPatterns:
+      - "**/*.egg-info*"
+    noDeploy: []
+    pipCmdExtraArgs:
+      - --extra-index-url=http://itsusralsp07062.jnj.com:8090
+      - --trusted-host=itsusralsp07062.jnj.com
+      - --extra-index-url https://pypi.jjapi.jnj.com/v1/itx-abp/private/dev/
+      - --extra-index-url https://pypi.jjapi.jnj.com/v1/itx-alz/shared/production/
+  stage: ${opt:stage}
+  func_prefix: ${self:service}-${self:custom.stage}
+  accountId: !Ref AWS::AccountId
+  admin_account: ${file(config/config.${opt:stage}.json):MAIN.ADMIN_ACCOUNT}
+  vpcEndpointId: ${file(config/config.${opt:stage}.json):VPCXIAM.VPCXIAM_ENDPOINT_ID}
+  vpcxiam_endpoint: ${file(config/config.${opt:stage}.json):VPCXIAM.VPCXIAM_ENDPOINT}
+  vpcxiam_host: ${file(config/config.${opt:stage}.json):VPCXIAM.VPCXIAM_HOST}
+  vpcxiam_scope: ${file(config/config.${opt:stage}.json):VPCXIAM.VPCXIAM_SCOPE}
+  token_url: ${file(config/config.common.json):ENVIRONMENT.LDAP_TOKEN_URL}
+  app_client_id: ${file(config/config.${opt:stage}.json):OAUTH2.APP_CLIENT_ID}
+  app_secret_name: ${file(config/config.common.json):ENVIRONMENT.APP_SECRET_NAME}
+  region_secret: ${opt:region, self:provider.region}
+  SUBNETS: ${file(config/config.${opt:stage}.json):DEPLOYMENT.SUBNETS}
+  SECURITY_GROUPS: ${file(config/config.${opt:stage}.json):DEPLOYMENT.SECURITY_GROUPS}
+  LOG_LEVEL: ${file(config/config.${opt:stage}.json):MAIN.LOG_LEVEL}
+  AZURE_AUTH_CLIENT_ID: ${file(config/config.common.json):ENVIRONMENT.AZURE_AUTH_CLIENT_ID}
+  AZURE_AUTH_SECRET_NAME: ${file(config/config.common.json):ENVIRONMENT.AZURE_AUTH_SECRET_NAME}
+  LDAP_GROUP_NAME: ${file(config/config.common.json):EC2_ALARMS_API.LDAP_GROUP_NAME}
+  MSFT_IDP_APP_ID: ${file(config/config.${opt:stage}.json):MSFT.MSFT_IDP_APP_ID}
+  MSFT_IDP_TENANT_ID: ${file(config/config.common.json):ENVIRONMENT.MSFT_IDP_TENANT_ID}
+  MSFT_IDP_CLIENT_ROLES: ${file(config/config.common.json):EC2_ALARMS_API.MSFT_IDP_CLIENT_ROLES}
+
+plugins:
+  - serverless-python-requirements
+  - serverless-stack-output
+  - serverless-prune-plugin
+  - serverless-ssm-publish

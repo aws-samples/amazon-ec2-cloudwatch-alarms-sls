@@ -1,0 +1,88 @@
+ {
+   {% if instance.is_windows_platform() %}
+    {% for alarm in instance.get_partition_config() %}
+       "{{alarm.alarmName}}":
+        {
+            "AlarmDescription": "{{instance.hostname}} {{alarm.dimensionValue}} Partition Utilization > 85% for 60 mins",
+            "MetricName": "PartitionUtilization",
+            "Namespace": "System/Windows",
+            "Statistic": "Minimum",
+            "Period": 900,
+            "EvaluationPeriods": 4,
+            "Threshold": 85,
+            "ComparisonOperator": "GreaterThanThreshold",
+            {{instance.get_default_actions()}},
+            "Dimensions": {{alarm.dimensions}}
+        },
+   {% endfor %}
+   {% endif %}
+   "{{instance.generate_alarm_prefix()}}-StatusCheckFailedfor10Mins": {
+            "AlarmDescription": "{{instance.hostname}} Status Check Failed for 10 mins",
+            "MetricName": "StatusCheckFailed",
+            "Namespace": "AWS/EC2",
+            "Statistic": "Average",
+            "Period": 300,
+            "EvaluationPeriods": 2,
+            "Threshold": 1,
+            "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+            {{instance.get_default_actions()}},
+            {{instance.get_base_dimension()}}
+        },
+    "{{instance.generate_alarm_prefix()}}-CpuUtilizationGt95PercentFor60Mins": {
+            "AlarmDescription": "{{instance.hostname}} CPU Utilization > 95% for 60 mins",
+            "MetricName": "CPUUtilization",
+            "Namespace": "AWS/EC2",
+            "Statistic": "Average",
+            "Period": 300,
+            "EvaluationPeriods": 12,
+            "Threshold": 95,
+            "ComparisonOperator": "GreaterThanThreshold",
+            {{instance.get_default_actions()}},
+            {{instance.get_base_dimension()}}
+        }
+    {% if instance.hostname.startswith("AWS") %} ,
+    "{{instance.generate_alarm_prefix()}}-MemoryUtilizationGt95PercentFor60Mins": {
+            "AlarmDescription": "{instance.hostname} Memory Utilization > 95% for 60 mins",
+            "MetricName": "MemoryUtilization",
+            "Namespace": "{{instance.get_memory_namespace()}}",
+            "Statistic": "Average",
+            "Period": 300,
+            "EvaluationPeriods": 12,
+            "Threshold": 95,
+            "ComparisonOperator": "GreaterThanThreshold",
+            {{instance.get_default_actions()}},
+            {{instance.get_base_dimension()}}
+        }
+    {% endif %}
+   {% if not instance.is_windows_platform() %}
+   {% for alarm in instance.get_disk_space_config() %}
+        {% if loop.first %},{% endif %}
+        "{{alarm.alarmName}}": {
+            "AlarmDescription": "{{instance.hostname}} {{alarm.dimensionValue}}  DiskSpace > 85% for 60 mins",
+            "MetricName": "DiskSpaceUtilization",
+            "Namespace": "System/Linux",
+            "Statistic": "Minimum",
+            "Period": 900,
+            "EvaluationPeriods": 4,
+            "Threshold": 85,
+            "ComparisonOperator": "GreaterThanThreshold",
+            {{instance.get_default_actions()}},
+            "Dimensions": {{alarm.dimensions}}
+        }{% if not loop.last %},{% endif %}
+   {% endfor %}
+   {% if instance.hostname.startswith("AWS") %} ,
+   "{{instance.generate_alarm_prefix()}}-SwapspaceUtilizationGt95PercentFor60Mins": {
+            "AlarmDescription": "{{instance.hostname}} Swapspace Utilization > 95% for 60 mins",
+            "MetricName": "SwapUtilization",
+            "Namespace": "System/Linux",
+            "Statistic": "Average",
+            "Period": 300,
+            "EvaluationPeriods": 12,
+            "Threshold": 95,
+            "ComparisonOperator": "GreaterThanThreshold",
+            {{instance.get_default_actions()}},
+            {{instance.get_base_dimension()}}
+        }
+   {% endif %}
+   {% endif %}
+   }

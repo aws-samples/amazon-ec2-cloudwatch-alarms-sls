@@ -1,0 +1,10 @@
+{
+  "headers": {
+    "Authorization": "",
+    "Content-Type": "application/json"
+  },
+  "pathParameters": {
+    "region_name": "us-east-1",
+    "account_id": "itx-046"
+  }
+}

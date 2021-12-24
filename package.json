@@ -1,0 +1,14 @@
+{
+    "name": "rds_provisioning",
+    "version": "0.0.0",
+    "description": "RDS Provisioning",
+    "dependencies": {
+        "serverless-prune-plugin": "^1.5.1",
+        "serverless-pseudo-parameters": "^2.5.0",
+        "serverless-python-requirements": "^5.1.1",
+        "serverless-stack-output": "^0.2.3"
+    },
+    "devDependencies": {
+        "serverless-ssm-publish": "^1.4.1"
+    }
+}
