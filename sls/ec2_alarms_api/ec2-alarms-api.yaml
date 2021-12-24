@@ -1,0 +1,168 @@
+openapi: 3.0.0
+info:
+  title: EC2 Microservices
+  description:
+    APIs for EC2 Alarms APi
+  version: 1.0.0
+servers:
+  - url: https://vpce-012710b591427fc69-kykwwlo6.execute-api.us-east-1.vpce.amazonaws.com/dev/v1
+    description: Development environment
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/jnj.onmicrosoft.com/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/its.jnj.com/oauth2/v2.0/token
+          scopes:
+            read: Grants read access
+            write: Grants write access
+security:
+  - OAuth2: [read, write]
+paths:
+  /v1/accounts/{account_id}/regions/{region_name}/instances/{ec2_hostname}/EC2Alarms:
+    put:
+      tags:
+        - Put EC2 Alarms API
+      summary: API that creates Cloudwatch metric alarms for EC2 instances. (ABGN-7265)
+      description: >
+        <b>EC2 Alarms API</b> creates Cloudwatch metric alarms for EC2 <br /><br />
+      consumes:
+        - none
+      produces:
+        - application/json
+      parameters:
+        - in: header
+          name: Host
+          required: true
+          schema:
+            type: string
+          description: Host for Lambda endpoint
+        - in: header
+          name: request-context-id
+          schema:
+            type: string
+          description: Unique id for the request. If provided, that id is added to all logging messages
+        - in: path
+          name: account_id
+          schema:
+            type: string
+          required: true
+          description: VPCx Account name where instance resides
+        - in: path
+          name: region_name
+          schema:
+            type: string
+          required: true
+          description: AWS region of the instance
+        - in: path
+           name: ec2_hostname
+           schema:
+             type: string
+           required: true
+           description: The instance hostname
+
+
+      responses:
+        '200':
+          description: >-
+            OK
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - "message": "Success! EC2 alarms created."
+
+        '401':
+          description: >-
+            UNAUTHORIZED - User or App token not authorized
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - error: "UNAUTHORIZED (User/App Token Unauthorized)"
+
+        '404':
+          description: >-
+            NOT_FOUND - Invalid data or configuration error
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - error: "Account not found"
+    delete:
+      tags:
+        - Delete EC2 Alarms API
+      summary: API that deletes Cloudwatch metric alarms for EC2 instances. (ABGN-11023)
+      description: >
+        <b>EC2 Delete Alarms API</b> deletes Cloudwatch metric alarms for EC2 <br /><br />
+      consumes:
+        - none
+      produces:
+        - application/json
+      parameters:
+        - in: header
+          name: Host
+          required: true
+          schema:
+            type: string
+          description: Host for Lambda endpoint
+        - in: header
+          name: request-context-id
+          schema:
+            type: string
+          description: Unique id for the request. If provided, that id is added to all logging messages
+        - in: path
+          name: account_id
+          schema:
+            type: string
+          required: true
+          description: VPCx Account name where instance resides
+        - in: path
+          name: region_name
+          schema:
+            type: string
+          required: true
+          description: AWS region of the instance
+        - in: path
+            name: ec2_hostname
+            schema:
+              type: string
+            required: true
+            description: The instance hostname
+
+
+      responses:
+        '200':
+          description: >-
+            OK
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - "message": "Success! EC2 alarms deleted."
+
+        '401':
+          description: >-
+            UNAUTHORIZED - User or App token not authorized
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - error: "UNAUTHORIZED (User/App Token Unauthorized)"
+
+        '404':
+          description: >-
+            NOT_FOUND - Invalid data or configuration error
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - error: "Account not found"
