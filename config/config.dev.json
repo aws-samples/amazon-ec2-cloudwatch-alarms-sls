@@ -1,7 +1,5 @@
 {
    "DEPLOYMENT": {
-      "ACCOUNT": "itxyz-000",
-      "ACCOUNT_NUMBER": "0321",
       "SUBNETS": [
          "subnet-d1b151be",
          "subnet-ceb151a1"
@@ -43,9 +41,5 @@
       "DB_VPC_SECURITY_GROUP_NAME": ["sg-8f468de8", "sg-e3468d84"],
       "SUBNET_ID": "subnet-2f367376",
       "INSTANCE_REGION": "us-east-1"
-   },
-   "TESTING": {
-      "TEST_ACCOUNT": "itxyz-046",
-      "TEST_ACCOUNT_NUMBER": "2473038"
    }
 }

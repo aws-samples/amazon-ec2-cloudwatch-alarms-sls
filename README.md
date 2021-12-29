@@ -25,11 +25,36 @@ Every account has Alarms SNS topic created by VPCx automation that is configured
 ├── package.json                  <-- Serverless frameowrk dependencies
 └── requirements.txt              <-- Python dependencies
 ```
+
 ---
-## Local env setup
+## Local env setup and Configuration
 
 ```
+# Install Python3.6, Pip3, Nodejs >= v14
+
+# Install python dependencies
 pip3 install -r requirements.txt
+
+# Install Serverless framework
+npm i -g serverless
+
+# Install Serverless dependencies
+cd amazon-ec2-cloudwatch-alarms-sls
+npm i
+
+# Install serverless plugins; python 3.6 should already be installed
+serverless plugin install -n serverless-python-requirements
+serverless plugin install -n serverless-deployment-bucket
+
+# Configure AWS named profile
+aws configure --profile default 
+
+# Set required config params in config/config.dev.json:
+SUBNETS, SECURITY_GROUPS, DEPLOYMENT_BUCKET"
+
+# Lambda Authentication
+utils.auth module: User can enable(or replace) MS Active Directory based authentication.
+                   Config params for MS Active Directory based OAuth are in config/config.dev.json
 ```
 ---
 ## Test
