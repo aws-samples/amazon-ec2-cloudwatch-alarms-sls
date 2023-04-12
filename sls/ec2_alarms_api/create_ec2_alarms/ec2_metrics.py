@@ -8,7 +8,7 @@ import re
 import uuid
 import concurrent.futures
 import jmespath
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from sls.utils.aws_cloudwatch import CloudWatchClient
 from sls.utils.aws_ec2 import EC2Client
@@ -83,7 +83,7 @@ class EC2Metrics:
         """
         fileloader = FileSystemLoader(searchpath=f"{THISDIR}/jinja_templates")
         template_env = Environment(loader=fileloader, trim_blocks=True,
-                                   lstrip_blocks=True, autoescape=True)
+                                   lstrip_blocks=True, autoescape=select_autoescape(['html', 'xml']))
         alarm_config_template = template_env.get_template("alarm_config_template.jinja2")
         alarm_config = alarm_config_template.render(instance=self)
         self.logger.info(alarm_config)
