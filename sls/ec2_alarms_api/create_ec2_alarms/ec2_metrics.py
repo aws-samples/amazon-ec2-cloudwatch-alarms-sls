@@ -82,8 +82,8 @@ class EC2Metrics:
         Import the jinja template for configuration and replace variable
         """
         fileloader = FileSystemLoader(searchpath=f"{THISDIR}/jinja_templates")
-        template_env = Environment(autoescape=True, loader=fileloader, trim_blocks=True,
-                                   lstrip_blocks=True)
+        template_env = Environment(loader=fileloader, trim_blocks=True,
+                                   lstrip_blocks=True, autoescape=True)
         alarm_config_template = template_env.get_template("alarm_config_template.jinja2")
         alarm_config = alarm_config_template.render(instance=self)
         self.logger.info(alarm_config)
